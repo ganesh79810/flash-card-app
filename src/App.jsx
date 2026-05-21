@@ -88,6 +88,25 @@ function App() {
     setNewAnswer("");
   };
 
+  // EDIT CARD
+  const editCard = () => {
+    if (newQuestion.trim() === "" || newAnswer.trim() === "") {
+      return;
+    }
+
+    const updatedCards = [...flashcards];
+
+    updatedCards[currentCard] = {
+      question: newQuestion,
+      answer: newAnswer,
+    };
+
+    setFlashcards(updatedCards);
+
+    setNewQuestion("");
+    setNewAnswer("");
+  };
+
   const deleteCard = () => {
     if (flashcards.length === 1) return;
 
@@ -101,7 +120,6 @@ function App() {
     setShowAnswer(false);
   };
 
-  // SHUFFLE CARDS
   const shuffleCards = () => {
     const shuffled = [...flashcards].sort(
       () => Math.random() - 0.5
@@ -157,6 +175,10 @@ function App() {
 
         <button onClick={addFlashcard}>
           Add Flashcard
+        </button>
+
+        <button onClick={editCard}>
+          Edit Card
         </button>
       </div>
 
