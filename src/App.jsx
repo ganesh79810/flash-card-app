@@ -3,17 +3,23 @@ import "./App.css";
 
 function App() {
 
-  // LOGIN STATE
+  // AUTH STATES
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem("isLoggedIn") === "true";
   });
+
+  const [isSignup, setIsSignup] = useState(false);
 
   const [username, setUsername] = useState("");
 
   const [password, setPassword] = useState("");
 
+  const [savedUser, setSavedUser] = useState(() => {
+    return JSON.parse(localStorage.getItem("user")) || null;
+  });
+
   // FLASHCARDS
-  const [flashcards, setFlashcards] = useState([
+  const [flashcards] = useState([
     {
       question: "What is JavaScript?",
       answer: "JavaScript is a programming language.",
@@ -37,17 +43,55 @@ function App() {
     localStorage.setItem("isLoggedIn", isLoggedIn);
   }, [isLoggedIn]);
 
-  // LOGIN FUNCTION
-  const handleLogin = () => {
+  // SIGNUP
+  const handleSignup = () => {
 
     if (username.trim() === "" || password.trim() === "") {
 
-      alert("Please enter username and password");
+      alert("Please fill all fields");
 
       return;
     }
 
-    setIsLoggedIn(true);
+    const userData = {
+      username,
+      password,
+    };
+
+    localStorage.setItem("user", JSON.stringify(userData));
+
+    setSavedUser(userData);
+
+    alert("Signup Successful ✅");
+
+    setIsSignup(false);
+
+    setUsername("");
+
+    setPassword("");
+  };
+
+  // LOGIN
+  const handleLogin = () => {
+
+    if (!savedUser) {
+
+      alert("Please create account first");
+
+      return;
+    }
+
+    if (
+      username === savedUser.username &&
+      password === savedUser.password
+    ) {
+
+      setIsLoggedIn(true);
+
+    } else {
+
+      alert("Invalid username or password");
+    }
   };
 
   // LOGOUT
@@ -86,7 +130,7 @@ function App() {
     setShowAnswer(!showAnswer);
   };
 
-  // LOGIN PAGE
+  // AUTH PAGE
   if (!isLoggedIn) {
 
     return (
@@ -95,7 +139,9 @@ function App() {
 
         <div className="login-box">
 
-          <h1>Flash Card Login</h1>
+          <h1>
+            {isSignup ? "Create Account" : "Login"}
+          </h1>
 
           <input
             type="text"
@@ -111,9 +157,24 @@ function App() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button onClick={handleLogin}>
-            Login
-          </button>
+          {isSignup ? (
+            <button onClick={handleSignup}>
+              Sign Up
+            </button>
+          ) : (
+            <button onClick={handleLogin}>
+              Login
+            </button>
+          )}
+
+          <p
+            className="switch-auth"
+            onClick={() => setIsSignup(!isSignup)}
+          >
+            {isSignup
+              ? "Already have account? Login"
+              : "Create new account"}
+          </p>
 
         </div>
 
@@ -128,7 +189,9 @@ function App() {
 
       <div className="top-bar">
 
-        <h1>Flash Card App 🚀</h1>
+        <h1>
+          Welcome {savedUser?.username} 🚀
+        </h1>
 
         <button onClick={handleLogout}>
           Logout
