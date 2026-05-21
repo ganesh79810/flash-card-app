@@ -2,222 +2,162 @@ import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const [flashcards, setFlashcards] = useState(() => {
-    const savedCards = localStorage.getItem("flashcards");
 
-    return savedCards
-      ? JSON.parse(savedCards)
-      : [
-          {
-            question: "What is JavaScript?",
-            answer: "JavaScript is a programming language.",
-          },
-          {
-            question: "What is React?",
-            answer: "React is a JavaScript library for building UI.",
-          },
-          {
-            question: "What is JSX?",
-            answer: "JSX lets you write HTML inside React.",
-          },
-        ];
+  // LOGIN STATE
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem("isLoggedIn") === "true";
   });
 
+  const [username, setUsername] = useState("");
+
+  const [password, setPassword] = useState("");
+
+  // FLASHCARDS
+  const [flashcards, setFlashcards] = useState([
+    {
+      question: "What is JavaScript?",
+      answer: "JavaScript is a programming language.",
+    },
+    {
+      question: "What is React?",
+      answer: "React is a JavaScript library.",
+    },
+    {
+      question: "What is JSX?",
+      answer: "JSX allows HTML inside React.",
+    },
+  ]);
+
   const [currentCard, setCurrentCard] = useState(0);
+
   const [showAnswer, setShowAnswer] = useState(false);
-  const [newQuestion, setNewQuestion] = useState("");
-  const [newAnswer, setNewAnswer] = useState("");
-  const [score, setScore] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(10);
 
+  // SAVE LOGIN
   useEffect(() => {
-    localStorage.setItem("flashcards", JSON.stringify(flashcards));
-  }, [flashcards]);
+    localStorage.setItem("isLoggedIn", isLoggedIn);
+  }, [isLoggedIn]);
 
-  useEffect(() => {
-    if (timeLeft === 0) {
-      nextCard();
+  // LOGIN FUNCTION
+  const handleLogin = () => {
+
+    if (username.trim() === "" || password.trim() === "") {
+
+      alert("Please enter username and password");
+
       return;
     }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft]);
-
-  const flipCard = () => {
-    setShowAnswer(!showAnswer);
+    setIsLoggedIn(true);
   };
 
+  // LOGOUT
+  const handleLogout = () => {
+
+    setIsLoggedIn(false);
+
+    setUsername("");
+
+    setPassword("");
+  };
+
+  // NEXT CARD
   const nextCard = () => {
+
     setShowAnswer(false);
 
     setCurrentCard((prev) =>
       prev === flashcards.length - 1 ? 0 : prev + 1
     );
-
-    setTimeLeft(10);
   };
 
+  // PREVIOUS CARD
   const prevCard = () => {
+
     setShowAnswer(false);
 
     setCurrentCard((prev) =>
       prev === 0 ? flashcards.length - 1 : prev - 1
     );
-
-    setTimeLeft(10);
   };
 
-  const addFlashcard = () => {
-    if (newQuestion.trim() === "" || newAnswer.trim() === "") {
-      return;
-    }
+  // FLIP CARD
+  const flipCard = () => {
 
-    const newCard = {
-      question: newQuestion,
-      answer: newAnswer,
-    };
-
-    setFlashcards([...flashcards, newCard]);
-
-    setNewQuestion("");
-    setNewAnswer("");
+    setShowAnswer(!showAnswer);
   };
 
-  // EDIT CARD
-  const editCard = () => {
-    if (newQuestion.trim() === "" || newAnswer.trim() === "") {
-      return;
-    }
+  // LOGIN PAGE
+  if (!isLoggedIn) {
 
-    const updatedCards = [...flashcards];
+    return (
 
-    updatedCards[currentCard] = {
-      question: newQuestion,
-      answer: newAnswer,
-    };
+      <div className="login-page">
 
-    setFlashcards(updatedCards);
+        <div className="login-box">
 
-    setNewQuestion("");
-    setNewAnswer("");
-  };
+          <h1>Flash Card Login</h1>
 
-  const deleteCard = () => {
-    if (flashcards.length === 1) return;
+          <input
+            type="text"
+            placeholder="Enter Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
-    const updatedCards = flashcards.filter(
-      (_, index) => index !== currentCard
+          <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button onClick={handleLogin}>
+            Login
+          </button>
+
+        </div>
+
+      </div>
     );
+  }
 
-    setFlashcards(updatedCards);
-
-    setCurrentCard(0);
-    setShowAnswer(false);
-  };
-
-  const shuffleCards = () => {
-    const shuffled = [...flashcards].sort(
-      () => Math.random() - 0.5
-    );
-
-    setFlashcards(shuffled);
-
-    setCurrentCard(0);
-
-    setShowAnswer(false);
-
-    setTimeLeft(10);
-  };
-
-  const markCorrect = () => {
-    setScore(score + 1);
-    nextCard();
-  };
-
-  const markWrong = () => {
-    nextCard();
-  };
-
+  // MAIN APP
   return (
-    <div className={darkMode ? "app dark" : "app"}>
-      <button
-        className="dark-mode-btn"
-        onClick={() => setDarkMode(!darkMode)}
-      >
-        {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-      </button>
 
-      <h1>Flash Card App</h1>
+    <div className="app">
 
-      <h2>Score: {score}</h2>
+      <div className="top-bar">
 
-      <h3>Time Left: {timeLeft}s</h3>
+        <h1>Flash Card App 🚀</h1>
 
-      <div className="input-container">
-        <input
-          type="text"
-          placeholder="Enter Question"
-          value={newQuestion}
-          onChange={(e) => setNewQuestion(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="Enter Answer"
-          value={newAnswer}
-          onChange={(e) => setNewAnswer(e.target.value)}
-        />
-
-        <button onClick={addFlashcard}>
-          Add Flashcard
+        <button onClick={handleLogout}>
+          Logout
         </button>
 
-        <button onClick={editCard}>
-          Edit Card
-        </button>
       </div>
 
       <div className="flashcard" onClick={flipCard}>
+
         {showAnswer
           ? flashcards[currentCard].answer
           : flashcards[currentCard].question}
+
       </div>
 
-      <p>Click to Flip</p>
-
-      <div className="score-buttons">
-        <button onClick={markCorrect}>Correct</button>
-
-        <button onClick={markWrong}>Wrong</button>
-      </div>
+      <p>Click Card to Flip</p>
 
       <div className="navigation-buttons">
-        <button onClick={prevCard}>Previous</button>
 
-        <button onClick={nextCard}>Next</button>
+        <button onClick={prevCard}>
+          Previous
+        </button>
 
-        <button onClick={deleteCard}>Delete Card</button>
+        <button onClick={nextCard}>
+          Next
+        </button>
 
-        <button onClick={shuffleCards}>Shuffle</button>
       </div>
 
-      <div className="progress-bar">
-        <div
-          className="progress-fill"
-          style={{
-            width: `${((currentCard + 1) / flashcards.length) * 100}%`,
-          }}
-        ></div>
-      </div>
-
-      <p className="progress-text">
-        Card {currentCard + 1} of {flashcards.length}
-      </p>
     </div>
   );
 }
