@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
+import "./App.css";
 
 function App() {
-
-  // LOAD FLASHCARDS FROM LOCAL STORAGE
   const [flashcards, setFlashcards] = useState(() => {
-
     const savedCards = localStorage.getItem("flashcards");
 
     return savedCards
@@ -12,185 +10,86 @@ function App() {
       : [
           {
             question: "What is JavaScript?",
-            answer: "JavaScript is a programming language."
+            answer: "JavaScript is a programming language.",
           },
           {
             question: "What is React?",
-            answer: "React is a JavaScript library for UI."
+            answer: "React is a JavaScript library for building UI.",
           },
           {
             question: "What is JSX?",
-            answer: "JSX allows HTML inside JavaScript."
-          }
+            answer: "JSX lets you write HTML inside React.",
+          },
         ];
   });
 
   const [currentCard, setCurrentCard] = useState(0);
-
-  const [isFlipped, setIsFlipped] = useState(false);
-
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [newQuestion, setNewQuestion] = useState("");
+  const [newAnswer, setNewAnswer] = useState("");
   const [score, setScore] = useState(0);
-
+  const [darkMode, setDarkMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(10);
 
-  const [quizFinished, setQuizFinished] = useState(false);
-
-  // LOAD DARK MODE FROM STORAGE
-  const [darkMode, setDarkMode] = useState(() => {
-
-    const savedTheme = localStorage.getItem("darkMode");
-
-    return savedTheme === "true";
-  });
-
-  const [newQuestion, setNewQuestion] = useState("");
-
-  const [newAnswer, setNewAnswer] = useState("");
-
-  // SAVE FLASHCARDS
   useEffect(() => {
-
-    localStorage.setItem(
-      "flashcards",
-      JSON.stringify(flashcards)
-    );
-
+    localStorage.setItem("flashcards", JSON.stringify(flashcards));
   }, [flashcards]);
 
-  // SAVE DARK MODE
   useEffect(() => {
-
-    localStorage.setItem(
-      "darkMode",
-      darkMode
-    );
-
-  }, [darkMode]);
-
-  // TIMER
-  useEffect(() => {
-
-    if (quizFinished) return;
-
     if (timeLeft === 0) {
-
       nextCard();
-
       return;
     }
 
-    const timer = setTimeout(() => {
-
-      setTimeLeft(timeLeft - 1);
-
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
     }, 1000);
 
-    return () => clearTimeout(timer);
-
+    return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // FLIP CARD
   const flipCard = () => {
-
-    setIsFlipped(!isFlipped);
+    setShowAnswer(!showAnswer);
   };
 
-  // CORRECT
-  const handleCorrect = () => {
-
-    setScore(score + 1);
-
-    nextCard();
-  };
-
-  // WRONG
-  const handleWrong = () => {
-
-    nextCard();
-  };
-
-  // NEXT CARD
   const nextCard = () => {
+    setShowAnswer(false);
 
-    if (currentCard < flashcards.length - 1) {
-
-      setCurrentCard(currentCard + 1);
-
-      setIsFlipped(false);
-
-      setTimeLeft(10);
-
-    } else {
-
-      setQuizFinished(true);
-    }
-  };
-
-  // PREVIOUS CARD
-  const previousCard = () => {
-
-    if (currentCard > 0) {
-
-      setCurrentCard(currentCard - 1);
-
-      setIsFlipped(false);
-
-      setTimeLeft(10);
-    }
-  };
-
-  // RESTART
-  const restartQuiz = () => {
-
-    setCurrentCard(0);
-
-    setScore(0);
+    setCurrentCard((prev) =>
+      prev === flashcards.length - 1 ? 0 : prev + 1
+    );
 
     setTimeLeft(10);
-
-    setIsFlipped(false);
-
-    setQuizFinished(false);
   };
 
-  // DARK MODE
-  const toggleDarkMode = () => {
+  const prevCard = () => {
+    setShowAnswer(false);
 
-    setDarkMode(!darkMode);
+    setCurrentCard((prev) =>
+      prev === 0 ? flashcards.length - 1 : prev - 1
+    );
+
+    setTimeLeft(10);
   };
 
-  // ADD CARD
   const addFlashcard = () => {
-
-    if (
-      newQuestion.trim() === "" ||
-      newAnswer.trim() === ""
-    ) {
-
+    if (newQuestion.trim() === "" || newAnswer.trim() === "") {
       return;
     }
 
     const newCard = {
-
       question: newQuestion,
-
-      answer: newAnswer
+      answer: newAnswer,
     };
 
     setFlashcards([...flashcards, newCard]);
 
     setNewQuestion("");
-
     setNewAnswer("");
   };
 
-  // DELETE CARD
-  const deleteFlashcard = () => {
-
-    if (flashcards.length === 1) {
-
-      return;
-    }
+  const deleteCard = () => {
+    if (flashcards.length === 1) return;
 
     const updatedCards = flashcards.filter(
       (_, index) => index !== currentCard
@@ -199,40 +98,39 @@ function App() {
     setFlashcards(updatedCards);
 
     setCurrentCard(0);
-
-    setIsFlipped(false);
+    setShowAnswer(false);
   };
 
-  // FINAL SCREEN
-  if (quizFinished) {
-
-    return (
-
-      <div className={`app ${darkMode ? "dark" : ""}`}>
-
-        <h1>Quiz Finished 🎉</h1>
-
-        <h2>
-          Your Score: {score} / {flashcards.length}
-        </h2>
-
-        <button onClick={restartQuiz}>
-          Restart Quiz
-        </button>
-
-        <button onClick={toggleDarkMode}>
-          {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-        </button>
-
-      </div>
+  // SHUFFLE CARDS
+  const shuffleCards = () => {
+    const shuffled = [...flashcards].sort(
+      () => Math.random() - 0.5
     );
-  }
+
+    setFlashcards(shuffled);
+
+    setCurrentCard(0);
+
+    setShowAnswer(false);
+
+    setTimeLeft(10);
+  };
+
+  const markCorrect = () => {
+    setScore(score + 1);
+    nextCard();
+  };
+
+  const markWrong = () => {
+    nextCard();
+  };
 
   return (
-
-    <div className={`app ${darkMode ? "dark" : ""}`}>
-
-      <button onClick={toggleDarkMode}>
+    <div className={darkMode ? "app dark" : "app"}>
+      <button
+        className="dark-mode-btn"
+        onClick={() => setDarkMode(!darkMode)}
+      >
         {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
       </button>
 
@@ -242,9 +140,7 @@ function App() {
 
       <h3>Time Left: {timeLeft}s</h3>
 
-      {/* ADD CARD */}
-      <div className="add-card">
-
+      <div className="input-container">
         <input
           type="text"
           placeholder="Enter Question"
@@ -262,87 +158,44 @@ function App() {
         <button onClick={addFlashcard}>
           Add Flashcard
         </button>
-
       </div>
 
-      {/* FLASH CARD */}
-      <div
-        className={`flip-card ${isFlipped ? "flipped" : ""}`}
-        onClick={flipCard}
-      >
-
-        <div className="flip-card-inner">
-
-          <div className="flip-card-front">
-
-            <h2>
-              {flashcards[currentCard].question}
-            </h2>
-
-            <p>Click to Flip</p>
-
-          </div>
-
-          <div className="flip-card-back">
-
-            <h2>
-              {flashcards[currentCard].answer}
-            </h2>
-
-          </div>
-
-        </div>
-
+      <div className="flashcard" onClick={flipCard}>
+        {showAnswer
+          ? flashcards[currentCard].answer
+          : flashcards[currentCard].question}
       </div>
 
-      {/* SCORE BUTTONS */}
-      <div>
+      <p>Click to Flip</p>
 
-        <button onClick={handleCorrect}>
-          Correct
-        </button>
+      <div className="score-buttons">
+        <button onClick={markCorrect}>Correct</button>
 
-        <button onClick={handleWrong}>
-          Wrong
-        </button>
-
+        <button onClick={markWrong}>Wrong</button>
       </div>
 
-      {/* NAVIGATION */}
-      <div>
+      <div className="navigation-buttons">
+        <button onClick={prevCard}>Previous</button>
 
-        <button onClick={previousCard}>
-          Previous
-        </button>
+        <button onClick={nextCard}>Next</button>
 
-        <button onClick={nextCard}>
-          Next
-        </button>
+        <button onClick={deleteCard}>Delete Card</button>
 
-        <button onClick={deleteFlashcard}>
-          Delete Card
-        </button>
-
+        <button onClick={shuffleCards}>Shuffle</button>
       </div>
 
-      {/* PROGRESS BAR */}
-      <div className="progress-container">
-
+      <div className="progress-bar">
         <div
-          className="progress-bar"
+          className="progress-fill"
           style={{
-            width: `${((currentCard + 1) / flashcards.length) * 100}%`
+            width: `${((currentCard + 1) / flashcards.length) * 100}%`,
           }}
-        >
-
-        </div>
-
+        ></div>
       </div>
 
       <p className="progress-text">
         Card {currentCard + 1} of {flashcards.length}
       </p>
-
     </div>
   );
 }
